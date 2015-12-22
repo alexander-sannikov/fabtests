@@ -138,8 +138,11 @@ int main(int argc, char **argv)
 
 	hints->ep_attr->type = FI_EP_RDM;
 	hints->caps = FI_TAGGED;
-	hints->mode = FI_LOCAL_MR;
-
+    if(TEST_MXM){
+	    hints->mode = FI_CONTEXT;
+    }else{
+        hints->mode = FI_LOCAL_MR;
+    }
 	ret = run();
 
 	ft_free_res();

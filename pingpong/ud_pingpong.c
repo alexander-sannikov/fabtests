@@ -153,7 +153,11 @@ int main(int argc, char **argv)
 
 	if (optind < argc)
 		opts.dst_addr = argv[optind];
-
+    
+    if (TEST_MXM){
+        fprintf(stderr, "MXM does not support FI_MSG endpoints");
+    }
+	
 	hints->ep_attr->type = FI_EP_DGRAM;
 	if (opts.options & FT_OPT_SIZE)
 		hints->ep_attr->max_msg_size = opts.transfer_size;

@@ -131,6 +131,9 @@ extern char test_name[10];
 extern struct timespec start, end;
 extern struct ft_opts opts;
 
+extern int use_mxm;
+int check_mxm();
+#define TEST_MXM (check_mxm()==1)
 
 void ft_parseinfo(int op, char *optarg, struct fi_info *hints);
 void ft_parse_addr_opts(int op, char *optarg, struct ft_opts *opts);

@@ -107,6 +107,14 @@ standard_tests=(
 	"rc_pingpong"
 )
 
+mxm_tests=(
+    "rdm_tagged_peek"
+    "av_test -d GOOD_ADDR -n 1 -s SERVER_ADDR"
+	"dom_test -n 2"
+	"rdm_tagged_pingpong"
+)
+
+
 unit_tests=(
 	"av_test -d GOOD_ADDR -n 1 -s SERVER_ADDR"
 	"dom_test -n 2"
@@ -318,6 +326,13 @@ function main {
 				cs_test "$test"
 			done
 		;;
+        mxm)
+            export FT_USE_MXM=1
+            for test in "${mxm_tests[@]}"; do
+                cs_test "$test"
+            done
+            unset FT_USE_MXM
+        ;;
 		*)
 			errcho "Unknown test set: ${ts}"
 			exit 1

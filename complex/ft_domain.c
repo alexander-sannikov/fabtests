@@ -226,10 +226,12 @@ int ft_open_control(void)
 	ret = ft_open_fabric();
 	if (ret)
 		return ret;
-
-	ret = ft_open_eq();
-	if (ret)
-		return ret;
+    
+    if (!TEST_MXM){
+	    ret = ft_open_eq();
+	    if (ret)
+		    return ret;
+    }
 
 	ret = ft_open_domain();
 	if (ret)

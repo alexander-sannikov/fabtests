@@ -196,12 +196,16 @@ int main(int argc, char **argv)
 
 	if (optind < argc)
 		opts.dst_addr = argv[optind];
-
+    
 	hints->rx_attr->total_buffered_recv = 1024;
 	hints->ep_attr->type = FI_EP_RDM;
-	hints->caps = FI_MSG | FI_TAGGED;
-	hints->mode = FI_CONTEXT | FI_LOCAL_MR;
-
+	if (!TEST_MXM){
+        hints->caps = FI_MSG | FI_TAGGED;
+	    hints->mode = FI_CONTEXT | FI_LOCAL_MR;
+    }else{
+        hints->caps = FI_TAGGED;
+        hints->mode = FI_CONTEXT;
+    }
 	ret = run();
 
 	ft_free_res();

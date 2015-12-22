@@ -116,7 +116,19 @@ const unsigned int test_cnt = (sizeof test_size / sizeof test_size[0]);
 #define INTEG_SEED 7
 static const char integ_alphabet[] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 static const int integ_alphabet_length = (sizeof(integ_alphabet)/sizeof(*integ_alphabet)) - 1;
+int use_mxm = -1;
 
+int check_mxm(){
+    if (use_mxm != -1) return use_mxm;
+    char * tmp = getenv("FT_WITH_MXM");
+    if(tmp !=NULL){
+        use_mxm =  !!atoi(tmp);
+        return use_mxm;
+    }else {
+        use_mxm = 0;
+    }
+    return use_mxm; 
+}
 
 static int ft_poll_fd(int fd, int timeout)
 {
@@ -227,12 +239,13 @@ int ft_open_fabric_res(void)
 		FT_PRINTERR("fi_fabric", ret);
 		return ret;
 	}
-
-	ret = fi_eq_open(fabric, &eq_attr, &eq, NULL);
-	if (ret) {
-		FT_PRINTERR("fi_eq_open", ret);
-		return ret;
-	}
+    if (!TEST_MXM) {
+	    ret = fi_eq_open(fabric, &eq_attr, &eq, NULL);
+	    if (ret) {
+		    FT_PRINTERR("fi_eq_open", ret);
+		    return ret;
+	    }
+    }
 
 	ret = fi_domain(fabric, fi, &domain, NULL);
 	if (ret) {
@@ -346,30 +359,32 @@ int ft_start_server(void)
 		FT_PRINTERR("fi_fabric", ret);
 		return ret;
 	}
+    if(!TEST_MXM){
+	
+        ret = fi_eq_open(fabric, &eq_attr, &eq, NULL);
+	    if (ret) {
+		    FT_PRINTERR("fi_eq_open", ret);
+		    return ret;
+	    }
 
-	ret = fi_eq_open(fabric, &eq_attr, &eq, NULL);
-	if (ret) {
-		FT_PRINTERR("fi_eq_open", ret);
-		return ret;
-	}
+	    ret = fi_passive_ep(fabric, fi, &pep, NULL);
+	    if (ret) {
+    		FT_PRINTERR("fi_passive_ep", ret);
+    		return ret;
+	    }
 
-	ret = fi_passive_ep(fabric, fi, &pep, NULL);
-	if (ret) {
-		FT_PRINTERR("fi_passive_ep", ret);
-		return ret;
-	}
+    	ret = fi_pep_bind(pep, &eq->fid, 0);
+	    if (ret) {
+		    FT_PRINTERR("fi_pep_bind", ret);
+    		return ret;
+	    }
 
-	ret = fi_pep_bind(pep, &eq->fid, 0);
-	if (ret) {
-		FT_PRINTERR("fi_pep_bind", ret);
-		return ret;
-	}
-
-	ret = fi_listen(pep);
-	if (ret) {
-		FT_PRINTERR("fi_listen", ret);
-		return ret;
-	}
+	    ret = fi_listen(pep);
+	    if (ret) {
+		    FT_PRINTERR("fi_listen", ret);
+		    return ret;
+	    }
+    }
 
 	return 0;
 }
@@ -536,7 +551,9 @@ static void ft_close_fids(void)
 	FT_CLOSE_FID(rxcntr);
 	FT_CLOSE_FID(txcntr);
 	FT_CLOSE_FID(av);
-	FT_CLOSE_FID(eq);
+    if (!TEST_MXM){
+	    FT_CLOSE_FID(eq);
+    }
 	FT_CLOSE_FID(pollset);
 	FT_CLOSE_FID(domain);
 	FT_CLOSE_FID(waitset);
@@ -1153,7 +1170,12 @@ void ft_parseinfo(int op, char *optarg, struct fi_info *hints)
 				perror("malloc");
 				exit(EXIT_FAILURE);
 			}
-		}
+        }
+        if (strcmp(optarg, "mxm")==0){
+            use_mxm = 1;
+        }else{
+            use_mxm = 0;
+        }
 		hints->fabric_attr->prov_name = strdup(optarg);
 		break;
 	default:
